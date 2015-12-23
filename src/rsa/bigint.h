@@ -28,6 +28,11 @@ bigint_t *bigint_alloc_reserve(size_t capacity);
 inline bigint_t *bigint_alloc()
 { return bigint_alloc_reserve(BIGINT_DEFAULT_CAPACITY); }
 void bigint_free(bigint_t *b);
+// returns size of bigint binary representation in bytes
+inline size_t bigint_get_size(bigint_t *b)
+{ return b->size*4; }
+void bigint_load(bigint_t *b, uint8_t *buf, size_t buf_size);
+void bigint_save(bigint_t *b, uint8_t *buf);
 
 int bigint_iszero(bigint_t* b);
 void bigint_copy(bigint_t *src, bigint_t *dst);
