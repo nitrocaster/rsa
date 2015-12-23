@@ -7,11 +7,13 @@
 
 // reference implementation by michael@pantaloons.co.nz
 
-static uint32_t small_bigint_data[11][1] = {
-    {0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9}, {10}
+static uint32_t small_bigint_data[17][1] = {
+    {0x0}, {0x1}, {0x2}, {0x3}, {0x4}, {0x5}, {0x6}, {0x7},
+    {0x8}, {0x9}, {0xa}, {0xb}, {0xc}, {0xd}, {0xe}, {0xf},
+    {0x10}
 };
 
-bigint_t small_bigint[11] = {
+bigint_t small_bigint[17] = {
     {1, 1, small_bigint_data[0]},
     {1, 1, small_bigint_data[1]},
     {1, 1, small_bigint_data[2]},
@@ -22,7 +24,13 @@ bigint_t small_bigint[11] = {
     {1, 1, small_bigint_data[7]},
     {1, 1, small_bigint_data[8]},
     {1, 1, small_bigint_data[9]},
-    {1, 1, small_bigint_data[10]}
+    {1, 1, small_bigint_data[10]},
+    {1, 1, small_bigint_data[11]},
+    {1, 1, small_bigint_data[12]},
+    {1, 1, small_bigint_data[13]},
+    {1, 1, small_bigint_data[14]},
+    {1, 1, small_bigint_data[15]},
+    {1, 1, small_bigint_data[16]}
 };
 
 static void bigint_reserve(bigint_t *b, size_t size)

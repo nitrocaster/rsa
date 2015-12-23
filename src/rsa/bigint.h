@@ -22,7 +22,7 @@ typedef struct
 
 #define BIGINT_DEFAULT_CAPACITY 20
 
-extern bigint_t small_bigint[11];
+extern bigint_t small_bigint[17];
 
 bigint_t *bigint_alloc_reserve(size_t capacity);
 inline bigint_t *bigint_alloc()
