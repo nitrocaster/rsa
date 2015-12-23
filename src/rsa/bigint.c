@@ -190,6 +190,43 @@ int bigint_geq(bigint_t *b1, bigint_t *b2)
 int bigint_leq(bigint_t *b1, bigint_t *b2)
 { return !bigint_greater(b1, b2); }
 
+void bigint_iadd32(bigint_t *src, uint32_t b2)
+{
+    bigint_t *temp = bigint_alloc();
+    bigint_add32(temp, src, b2);
+    bigint_copy(temp, src);
+    bigint_free(temp);
+}
+
+void bigint_add32(bigint_t *result, bigint_t *b1, uint32_t b2)
+{
+    size_t n = b1->size;
+    bigint_reserve(result, n+1);
+    uint32_t carry = 0;
+    for (size_t i = 0; i<n; i++)
+    {
+        uint32_t sum = carry;
+        if (i < b1->size)
+            sum += b1->data[i];
+        if (i<1)
+            sum += b2;
+        // Already taken mod 2^32 by unsigned wrap around
+        result->data[i] = sum;
+        // Result must have wrapped 2^32 so carry bit is 1
+        if (i < b1->size)
+            carry = sum < b1->data[i];
+        else
+            carry = sum<b2;
+    }
+    if (carry==1)
+    {
+        result->size = n+1;
+        result->data[n] = 1;
+    }
+    else
+        result->size = n;
+}
+
 // Perform an in place add into the source bigint.
 // src += add
 void bigint_iadd(bigint_t *src, bigint_t *add)

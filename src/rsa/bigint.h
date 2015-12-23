@@ -45,6 +45,8 @@ int bigint_less(bigint_t *b1, bigint_t *b2);
 int bigint_geq(bigint_t *b1, bigint_t *b2);
 int bigint_leq(bigint_t *b1, bigint_t *b2);
 
+void bigint_iadd32(bigint_t *src, uint32_t b2);
+void bigint_add32(bigint_t *result, bigint_t *b1, uint32_t b2);
 void bigint_iadd(bigint_t* src, bigint_t* add);
 void bigint_add(bigint_t* result, bigint_t* b1, bigint_t* b2);
 void bigint_isub(bigint_t* src, bigint_t* add);
