@@ -103,7 +103,8 @@ void bigint_fromint(bigint_t *b, uint32_t num)
 // division by 10. We can make it more efficient by dividing by 10^9
 // for example, then doing single precision arithmetic to retrieve the
 // 9 remainders.
-void bigint_print(bigint_t *b)
+// format: X,x,d
+void bigint_print(bigint_t *b, char format)
 {
     size_t cap = 100;    
     if (!b->size || bigint_iszero(b))
@@ -115,10 +116,11 @@ void bigint_print(bigint_t *b)
     bigint_t *copy = bigint_alloc();
     bigint_t *rem = bigint_alloc();
     bigint_copy(b, copy);
-    size_t len = 0;        
+    size_t len = 0;
+    size_t base = format=='d' ? 10 : 16;
     while (!bigint_iszero(copy))
     {
-        bigint_idivr(copy, &small_bigint[10], rem);
+        bigint_idivr(copy, &small_bigint[base], rem);
         buffer[len++] = rem->data[0];
         if (len>=cap)
         {
@@ -126,8 +128,9 @@ void bigint_print(bigint_t *b)
             buffer = realloc(buffer, cap);
         }
     }
+    char format_str[3] = {'%', format, 0};
     for (size_t i = len; i--;)
-        printf("%d", buffer[i]);
+        printf(format_str, buffer[i]);
     free(buffer);
     bigint_free(copy);
     bigint_free(rem);

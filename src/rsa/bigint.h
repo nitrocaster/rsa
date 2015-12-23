@@ -38,7 +38,7 @@ int bigint_iszero(bigint_t* b);
 void bigint_copy(bigint_t *src, bigint_t *dst);
 void bigint_fromstring(bigint_t *b, char* str);
 void bigint_fromint(bigint_t *b, uint32_t num);
-void bigint_print(bigint_t *b);
+void bigint_print(bigint_t *b, char format);
 int bigint_equal(bigint_t *b1, bigint_t *b2);
 int bigint_greater(bigint_t *b1, bigint_t *b2);
 int bigint_less(bigint_t *b1, bigint_t *b2);
