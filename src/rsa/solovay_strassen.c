@@ -34,7 +34,7 @@ int is_prime_ss(bigint_t *n, size_t k)
     if (n->data[0]%2==0 || bigint_equal(n, &small_bigint[1]))
         return 0;
     bigint_t *prealloc[4];
-    for (size_t i = 0; i<sizeof(prealloc); i++)
+    for (size_t i = 0; i<4; i++)
         prealloc[i] = bigint_alloc();
     int result = 1;
     while (k--)
@@ -50,7 +50,7 @@ int is_prime_ss(bigint_t *n, size_t k)
             break;
         }
     }
-    for (size_t i = 0; i<sizeof(prealloc); i++)
+    for (size_t i = 0; i<4; i++)
         bigint_free(prealloc[i]);
     return result;
 }
