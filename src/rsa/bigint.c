@@ -62,7 +62,7 @@ void bigint_load(bigint_t *b, uint8_t *buf, size_t buf_size)
 {
     b->size = buf_size/4;
     bigint_reserve(b, b->size);
-    memcpy(buf, b->data, b->size*sizeof(uint32_t));
+    memcpy(b->data, buf, b->size*sizeof(uint32_t));
 }
 
 // the buffer pointed by data must be at least 'b->size' bytes long
