@@ -84,8 +84,15 @@ void rsa_generate_keypair(bigint_t *e, bigint_t *d, bigint_t *n,
     bigint_free(phi);
 }
 
-void rsa_transform(uint8_t *src, size_t src_size, uint8_t dst,
+void rsa_transform(uint8_t *src, size_t src_size, uint8_t *dst,
     bigint_t *exp, bigint_t *n)
 {
-    // XXX: implement
+    bigint_t *m = bigint_alloc();
+    bigint_load(m, src, src_size);
+    bigint_t *result = bigint_alloc();
+    bigint_modpow(m, exp, n, result);
+    assert(bigint_get_size(result)<=src_size);
+    bigint_save(result, dst);
+    bigint_free(result);
+    bigint_free(m);
 }
