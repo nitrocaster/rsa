@@ -3,10 +3,12 @@
   <ItemGroup>
     <ClCompile Include="main.c" />
     <ClCompile Include="bigint.c" />
+    <ClCompile Include="solovay_strassen.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
     <ClInclude Include="common.h" />
     <ClInclude Include="bigint.h" />
+    <ClInclude Include="solovay_strassen.h" />
   </ItemGroup>
 </Project>
