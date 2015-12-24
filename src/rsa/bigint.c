@@ -80,14 +80,21 @@ void bigint_copy(bigint_t *src, bigint_t *dst)
 }
 
 // Load a bigint from a base 10 string. Only pure numeric strings will work.
-void bigint_fromstring(bigint_t *b, char* str)
+// base: x,d
+void bigint_fromstring(bigint_t *b, char* str, char base)
 {
     size_t len = strlen(str);
+    size_t base_sz = base=='d' ? 10 : 16;
     for (size_t i = 0; i<len; i++)
     {
         if (i)
-            bigint_imul(b, &small_bigint[10]);
-        bigint_iadd(b, &small_bigint[str[i]-'0']);
+            bigint_imul(b, &small_bigint[base_sz]);
+        char c = str[i];
+        if (c>='a')
+            c = c-'a'+10;
+        else
+            c = c-'0';
+        bigint_iadd(b, &small_bigint[c]);
     }
 }
 
