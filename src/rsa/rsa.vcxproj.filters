@@ -5,6 +5,7 @@
     <ClCompile Include="bigint.c" />
     <ClCompile Include="solovay_strassen.c" />
     <ClCompile Include="rsa.c" />
+    <ClCompile Include="dumb_padding.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
@@ -12,5 +13,6 @@
     <ClInclude Include="bigint.h" />
     <ClInclude Include="solovay_strassen.h" />
     <ClInclude Include="rsa.h" />
+    <ClInclude Include="dumb_padding.h" />
   </ItemGroup>
 </Project>
