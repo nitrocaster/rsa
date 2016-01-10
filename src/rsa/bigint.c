@@ -45,7 +45,7 @@ static void bigint_reserve(bigint_t *b, size_t size)
 bigint_t *bigint_alloc_reserve(size_t capacity)
 {
     bigint_t* b = malloc(sizeof(bigint_t)+capacity*sizeof(uint32_t));
-    b->size = 0;
+    b->size = 1;
     b->capacity = capacity;
     b->data = calloc(capacity, sizeof(uint32_t));
     return b;
@@ -314,9 +314,9 @@ void bigint_sub(bigint_t *dst, bigint_t *b1, bigint_t *b2)
         carry = temp > b1->data[i];
         dst->data[i] = diff;
         if (dst->data[i])
-            length = i+1;
+            length = i;
     }
-    dst->size = length;
+    dst->size = length+1;
 }
 
 // Perform an in place multiplication into the source bigint.
