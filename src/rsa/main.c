@@ -204,7 +204,8 @@ static int run_transform(int argc, char *argv[])
     {
         rsa_transform(buf_ptr, block_size, buf_ptr, exp, n);
         size_t padding = 0;
-        if (dp_depad(buf_ptr, block_size, &padding)!=DP_OK)
+        if (dp_depad(buf_ptr, block_size, &padding)!=DP_OK ||
+            padding>src_size)
         {
             puts("padding is invalid and cannot be removed.");
             return 1;
