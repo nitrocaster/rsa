@@ -411,143 +411,95 @@ void bigint_imod(bigint_t *src, bigint_t *mod)
     bigint_free(r);
 }
 
+static uint32_t get_shifted_block(bigint_t *num, size_t x, uint32_t y)
+{
+    uint32_t part1 = !x || !y ? 0 : num->data[x-1] >> (32-y);
+    uint32_t part2 = x==num->size ? 0 : num->data[x] << y;
+    return part1|part2;
+}
+
+static void strip_leading_zeros(bigint_t *num)
+{
+    while (num->size && !num->data[num->size-1])
+        num->size--;
+}
+
 // Divide two bigints by naive long division, producing both
 // quotient and remainder.
 // q = floor(b1/b2), rem = b1-q*b2
-// If b1<b2, the quotient is trivially 0 and remainder is b2.
+// If b1<b2, the quotient is trivially 0 and remainder is b1.
 void bigint_div(bigint_t *q, bigint_t *rem, bigint_t *b1, bigint_t *b2)
 {
-    bigint_t *b2copy = bigint_alloc();
-    bigint_t *b1copy = bigint_alloc();
-    bigint_t *temp = bigint_alloc();
-    bigint_t *temp2 = bigint_alloc();
-    bigint_t *temp3 = bigint_alloc();
-    bigint_t *quottemp = bigint_alloc();
-    uint32_t carry = 0;
-    size_t length = 0;
-    uint64_t factor = 1;
-    uint64_t gquot, gtemp, grem;
     if (bigint_less(b1, b2))
     {
         // Trivial case: b1/b2 = 0 if b1<b2.
-        q->size = 0;
+        bigint_copy(&small_bigint[0], q);
         bigint_copy(b1, rem);
+        return;
     }
-    else if (bigint_iszero(b1))
+    if (bigint_iszero(b1) || bigint_iszero(b2))
     {
-        // 0/x = 0.. assuming b2 is nonzero
-        q->size = 0;
-        bigint_fromint(rem, 0);
+        // let a/0 == 0 and a%0 == a to preserve these two properties:
+		// 1] a%0 == a
+		// 2] (a/b)*b + (a%b) == a
+        bigint_copy(&small_bigint[0], q);
+        bigint_copy(&small_bigint[0], rem);
+        return;
     }
-    else if (b2->size==1)
+    // Thanks to Matt McCutchen <matt@mattmccutchen.net> for the algorithm.
+    size_t ref_size = b1->size;
+    bigint_copy(b1, rem);
+    bigint_reserve(rem, rem->size+1);
+    rem->size++;
+    rem->data[ref_size] = 0;
+    uint32_t *sub_buf = malloc(rem->size*sizeof(uint32_t));
+    q->size = ref_size - b2->size+1;
+    bigint_reserve(q, q->size);
+    memset(q->data, 0, q->size*sizeof(uint32_t));
+    // for each left-shift of b2 in blocks...
+    size_t i = q->size;
+    while (i)
     {
-        // Division by a single limb means we can do simple division
-        bigint_reserve(q, b1->size);
-        for (size_t i = b1->size; i--;)
+        i--;
+        // for each left-shift of b2 in bits...
+        q->data[i] = 0;
+        uint32_t i2 = 32;
+        while (i2>0)
         {
-            gtemp = carry*BIGINT_RADIX + b1->data[i];
-            gquot = gtemp/b2->data[0];
-            q->data[i] = (uint32_t)gquot;
-            if (q->data[i] && !length)
-                length = i+1;
-            carry = gtemp%b2->data[0];
+            i2--;
+            size_t j, k;
+            int borrow_in, borrow_out;
+            for (j = 0, k = i, borrow_in = 0; j<=b2->size; j++, k++)
+            {
+                uint32_t temp = rem->data[k]-get_shifted_block(b2, j, i2);
+                borrow_out = temp > rem->data[k];
+                if (borrow_in)
+                {
+                    borrow_out |= !temp;
+                    temp--;
+                }
+                sub_buf[k] = temp;
+                borrow_in = borrow_out;
+            }            
+            for (; k<ref_size && borrow_in; k++)
+            {
+                borrow_in = !rem->data[k];
+                sub_buf[k] = rem->data[k]-1;
+            }
+            if (!borrow_in)
+            {
+                q->data[i] |= 1 << i2;
+                while (k>i)
+                {
+                    k--;
+                    rem->data[k] = sub_buf[k];
+                }
+            }
         }
-        bigint_fromint(rem, carry);
-        q->size = length;
     }
-    else // Long division is neccessary
-    {
-        size_t n = b1->size+1;
-        size_t m = b2->size;
-        bigint_reserve(q, n-m);
-        bigint_copy(b1, b1copy);
-        bigint_copy(b2, b2copy);
-        // Normalize.. multiply by the divisor by 2 until MSB >= HALFRADIX.
-        // This ensures fast convergence when guessing the quotient below.
-        // We also multiply the dividend by the same amount to ensure the
-        // result does not change.
-        while (b2copy->data[b2copy->size-1]<BIGINT_HALFRADIX)
-        {
-            factor *= 2;
-            bigint_imul(b2copy, &small_bigint[2]);
-        }
-        if (factor>1)
-        {
-            bigint_fromint(temp, (uint32_t)factor);
-            bigint_imul(b1copy, temp);
-        }
-        // Ensure the dividend is longer than the original (pre-normalized)
-        // divisor. If it is not we introduce a dummy zero uint32_t to
-        // artificially inflate it.
-        if (b1copy->size!=n)
-        {
-            b1copy->size++;
-            bigint_reserve(b1copy, b1copy->size);
-            b1copy->data[n-1] = 0;
-        }
-        // Process quotient by long division
-        for (size_t i = n-m; i--;)
-        {
-            gtemp = BIGINT_RADIX * b1copy->data[i+m] + b1copy->data[i+m-1];
-            gquot = gtemp / b2copy->data[m-1];
-            if (gquot>=BIGINT_RADIX)
-                gquot = UINT_MAX;
-            grem = gtemp % b2copy->data[m-1];
-            while (grem<BIGINT_RADIX && gquot*b2copy->data[m-2] >
-                BIGINT_RADIX*grem + b1copy->data[i+m-2])
-            {
-                // Should not overflow... ?
-                gquot--;
-                grem += b2copy->data[m-1];
-            }
-            quottemp->data[0] = gquot%BIGINT_RADIX;
-            quottemp->data[1] = (uint32_t)(gquot/BIGINT_RADIX);
-            quottemp->size = quottemp->data[1] ? 2 : 1;
-            bigint_mul(temp2, b2copy, quottemp);
-            bigint_reserve(temp3, m+1);
-            temp3->size = 0;
-            for (size_t j = 0; j<=m; j++)
-            {
-                temp3->data[j] = b1copy->data[i+j];
-                if (temp3->data[j])
-                    temp3->size = j+1;
-            }
-            if (bigint_less(temp3, temp2))
-            {
-                bigint_iadd(temp3, b2copy);
-                gquot--;
-            }
-            bigint_isub(temp3, temp2);
-            for (size_t j = 0; j < temp3->size; j++)
-                b1copy->data[i+j] = temp3->data[j];
-            for (size_t j = temp3->size; j<=m; j++)
-                b1copy->data[i+j] = 0;
-            q->data[i] = (uint32_t)gquot;
-            if (q->data[i])
-                q->size = i;
-        }
-        q->size = b1->size - b2->size;
-        if (q->data[q->size])
-            q->size++;
-        // Divide by factor now to find final remainder
-        carry = 0;
-        for (size_t i = b1copy->size; i--;)
-        {
-            gtemp = carry*BIGINT_RADIX+b1copy->data[i];
-            b1copy->data[i] = (uint32_t)(gtemp/factor);
-            if (b1copy->data[i] && !length)
-                length = i+1;
-            carry = (uint32_t)(gtemp%factor);
-        }
-        b1copy->size = length;
-        bigint_copy(b1copy, rem);
-    }
-    bigint_free(temp);
-    bigint_free(temp2);
-    bigint_free(temp3);
-    bigint_free(b1copy);
-    bigint_free(b2copy);
-    bigint_free(quottemp);
+    strip_leading_zeros(q);
+    strip_leading_zeros(rem);
+    free(sub_buf);
 }
 
 // Perform modular exponentiation by repeated squaring.
