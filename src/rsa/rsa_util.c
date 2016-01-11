@@ -1,5 +1,6 @@
 #include "config.h"
 #include "rsa_util.h"
+#include <stdlib.h>
 
 int rsa_load_key(FILE *f, bigint_t *n, bigint_t *exp)
 {
