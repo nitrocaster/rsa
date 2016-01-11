@@ -32,3 +32,26 @@ void rsa_save_key(FILE *f, bigint_t *n, bigint_t *exp)
     fwrite(buf, exp_size, 1, f);
     free(buf);
 }
+
+static size_t bsize(uint32_t n)
+{
+    if (n & 0xff000000)
+        return 4;
+    if (n & 0x00ff0000)
+        return 3;
+    if (n & 0x0000ff00)
+        return 2;
+    if (n & 0x000000ff)
+        return 1;
+    return 0;
+}
+
+void rsa_get_block_sizes(char mode, bigint_t *n,
+    size_t *src_block_size, size_t *dst_block_size)
+{
+    size_t mod_size = bigint_get_size(n);
+    size_t msg_size =
+        mod_size-(1+sizeof(uint32_t)-bsize(n->data[n->size-1]));
+    *src_block_size = mode=='e' ? msg_size : mod_size;
+    *dst_block_size = mode=='e' ? mod_size : msg_size;
+}

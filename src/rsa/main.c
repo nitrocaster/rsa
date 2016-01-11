@@ -86,19 +86,6 @@ static int run_keygen(int argc, char *argv[])
     return 0;
 }
 
-static size_t bsize(uint32_t n)
-{
-    if (n & 0xff000000)
-        return 4;
-    if (n & 0x00ff0000)
-        return 3;
-    if (n & 0x0000ff00)
-        return 2;
-    if (n & 0x000000ff)
-        return 1;
-    return 0;
-}
-
 static int run_transform(int argc, char *argv[])
 {
     // 0    1         2   3   4
@@ -146,13 +133,7 @@ static int run_transform(int argc, char *argv[])
         return 1;
     }
     size_t src_block_size, dst_block_size;
-    {
-        size_t mod_size = bigint_get_size(n);
-        size_t msg_size =
-            mod_size-(1+sizeof(uint32_t)-bsize(n->data[n->size-1]));
-        src_block_size = mode=='e' ? msg_size : mod_size;
-        dst_block_size = mode=='e' ? mod_size : msg_size;
-    }
+    rsa_get_block_sizes(mode, n, &src_block_size, &dst_block_size);
     // decrypting: transform plain_blocks-1, apply special case for last block
     // encrypting: transform plain_blocks, apply special case for the rest
     size_t buf_sz = max(src_block_size, dst_block_size);
