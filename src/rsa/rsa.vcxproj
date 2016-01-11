@@ -133,6 +133,7 @@
     <ClCompile Include="bigint.c" />
     <ClCompile Include="dumb_padding.c" />
     <ClCompile Include="rsa.c" />
+    <ClCompile Include="rsa_util.c" />
     <ClCompile Include="solovay_strassen.c" />
   </ItemGroup>
   <ItemGroup>
@@ -141,6 +142,7 @@
     <ClInclude Include="bigint.h" />
     <ClInclude Include="dumb_padding.h" />
     <ClInclude Include="rsa.h" />
+    <ClInclude Include="rsa_util.h" />
     <ClInclude Include="solovay_strassen.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

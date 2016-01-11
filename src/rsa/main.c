@@ -2,6 +2,7 @@
 #include "common.h"
 #include "rsa.h"
 #include "dumb_padding.h"
+#include "rsa_util.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -42,38 +43,6 @@ static int ftrim(FILE *f, size_t new_size)
 #endif
 }
 
-static int load_key(FILE *f, bigint_t *n, bigint_t *exp)
-{
-    // XXX: handle errors
-    uint32_t n_size = 0, exp_size = 0;
-    // read n_size, n, exp_size, exp
-    fread(&n_size, sizeof(uint32_t), 1, f);
-    uint8_t *buf = malloc(n_size);
-    fread(buf, n_size, 1, f);
-    bigint_load(n, buf, n_size);
-    fread(&exp_size, sizeof(uint32_t), 1, f);
-    buf = realloc(buf, exp_size);
-    fread(buf, exp_size, 1, f);
-    bigint_load(exp, buf, exp_size);
-    free(buf);
-    return 0;
-}
-
-static void save_key(FILE *f, bigint_t *n, bigint_t *exp)
-{
-    uint32_t n_size = (uint32_t)bigint_get_size(n);
-    uint32_t exp_size = (uint32_t)bigint_get_size(exp);
-    uint8_t *buf = malloc(n_size+exp_size);
-    // write n_size, n, exp_size, exp
-    bigint_save(n, buf);
-    fwrite(&n_size, sizeof(uint32_t), 1, f);
-    fwrite(buf, n_size, 1, f);
-    bigint_save(exp, buf);
-    fwrite(&exp_size, sizeof(uint32_t), 1, f);
-    fwrite(buf, exp_size, 1, f);
-    free(buf);
-}
-
 static int run_keygen(int argc, char *argv[])
 {
     // 0    1      2      3       4
@@ -106,8 +75,8 @@ static int run_keygen(int argc, char *argv[])
     bigint_t *d = bigint_alloc();
     bigint_t *n = bigint_alloc();
     rsa_generate_keypair(e, d, n, key_size);
-    save_key(public_key, n, e);
-    save_key(private_key, n, d);
+    rsa_save_key(public_key, n, e);
+    rsa_save_key(private_key, n, d);
     // XXX: zeroize keys before free?
     bigint_free(e);
     bigint_free(d);
@@ -171,7 +140,7 @@ static int run_transform(int argc, char *argv[])
     bigint_t *n = bigint_alloc();
     bigint_t *exp = bigint_alloc();
     // XXX: free allocated resources on failure
-    if (load_key(key, n, exp))
+    if (rsa_load_key(key, n, exp))
     {
         puts("invalid key file.");
         return 1;

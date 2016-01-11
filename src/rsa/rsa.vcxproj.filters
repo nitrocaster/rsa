@@ -6,6 +6,7 @@
     <ClCompile Include="solovay_strassen.c" />
     <ClCompile Include="rsa.c" />
     <ClCompile Include="dumb_padding.c" />
+    <ClCompile Include="rsa_util.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="config.h" />
@@ -14,5 +15,6 @@
     <ClInclude Include="solovay_strassen.h" />
     <ClInclude Include="rsa.h" />
     <ClInclude Include="dumb_padding.h" />
+    <ClInclude Include="rsa_util.h" />
   </ItemGroup>
 </Project>
