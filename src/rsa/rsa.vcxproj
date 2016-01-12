@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{606752B8-1B0B-496A-9F46-658A71D6F2C4}</ProjectGuid>
+    <ProjectGuid>{CB1E7EE1-8238-4B10-82B6-6D79A20E9F0E}</ProjectGuid>
     <RootNamespace>rsa</RootNamespace>
     <WindowsTargetPlatformVersion>8.1</WindowsTargetPlatformVersion>
   </PropertyGroup>
