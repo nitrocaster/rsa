@@ -57,13 +57,13 @@ static int run_keygen(int argc, char *argv[])
         puts("invalid key size (must me a multiple of 32).");
         return 1;
     }
-    FILE *public_key = fopen(argv[3], "wb+");
+    FILE *public_key = fopen(argv[3], "wb");
     if (!public_key)
     {
         puts("can't open public key file.");
         return 1;
     }
-    FILE *private_key = fopen(argv[4], "wb+");
+    FILE *private_key = fopen(argv[4], "wb");
     if (!public_key)
     {
         fclose(public_key);
@@ -117,7 +117,7 @@ static int run_transform(int argc, char *argv[])
         puts("can't open source file.");
         return 1;
     }
-    FILE *dst = fopen(argv[4], "wb+");
+    FILE *dst = fopen(argv[4], "wb");
     if (!src)
     {
         puts("can't open destination file.");
